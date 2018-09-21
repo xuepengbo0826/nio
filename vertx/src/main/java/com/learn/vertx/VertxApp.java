@@ -70,8 +70,9 @@ public class VertxApp{
         GuiceVerticle guiceVerticle = new GuiceVerticle();
         GuiceModule guiceModule = new GuiceModule();
         GuiceVerticleFactory guiceVerticleFactory = new GuiceVerticleFactory();
-        GuiceVerticleLoader guiceVerticleLoader = new GuiceVerticleLoader(guiceVerticle.getClass().getName(), ClassLoader.getSystemClassLoader(), Guice.createInjector(guiceModule));
-        Verticle verticle = guiceVerticleFactory.createVerticle(guiceVerticle.getClass().getName(), ClassLoader.getSystemClassLoader());
+        GuiceVerticleLoader guiceVerticleLoader = new GuiceVerticleLoader(guiceVerticle.getClass().getName(), guiceVerticle.getClass().getClassLoader(), Guice.createInjector(guiceModule));
+        guiceVerticleLoader.start();
+        Verticle verticle = guiceVerticleFactory.createVerticle(guiceVerticle.getClass().getName(), guiceVerticle.getClass().getClassLoader());
         guiceVerticleLoader.init(verticle.getVertx(), verticle.getVertx().getOrCreateContext());
         Vertx vertx = verticle.getVertx();
         Router router = Router.router(vertx);
@@ -83,7 +84,6 @@ public class VertxApp{
                 System.out.println("启动错误！");
             }
         });
-        guiceVerticleLoader.start();
         /*vertx.createHttpServer().listen(8090);*/
     }
 }
