@@ -1,22 +1,17 @@
 package com.learn.vertx;
 
-import com.learn.vertx.annotation.Action;
+import com.englishtown.vertx.guice.GuiceVerticleFactory;
+import com.englishtown.vertx.guice.GuiceVerticleLoader;
+import com.google.inject.Guice;
 import com.learn.vertx.controller.BookController;
-import com.learn.vertx.util.Load;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
+import com.learn.vertx.module.GuiceModule;
+import com.learn.vertx.module.GuiceVerticle;
+import io.vertx.core.*;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
 
-import java.io.File;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,12 +35,12 @@ public class VertxApp{
         return httpServerRequestHandler;
     }*/
 
-    public static Handler<RoutingContext> requestHandler(Method method){
+    public static Handler<RoutingContext> requestHandler(Method method, Class clazz){
         Handler<RoutingContext> requestHandler = new Handler<RoutingContext>() {
             @Override
             public void handle(RoutingContext event) {
                 try {
-                    method.invoke(BookController.class, event);
+                    method.invoke(clazz, event);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 } catch (InvocationTargetException e) {
@@ -56,18 +51,39 @@ public class VertxApp{
         return requestHandler;
     }
 
-    public static void main( String[] args ) {
-        String packget = "com.learn.vertx.controller";
-        Load.loadClass(packget);
+    public static void main( String[] args ) throws Exception {
+        /*Injector injector = Guice.createInjector();*/
+        /*BookController bookController = injector.getInstance(BookController.class);*/
+       /* String packget = "com.learn.vertx.controller";
+        *//*Load.loadClass(packget);*//*
         Vertx vertx = Vertx.vertx();
         Router router = Router.router(vertx);
-        router.route("/*").handler(BodyHandler.create());
         for (Map.Entry<Object[], Object> objectEntry : methodMap.entrySet()) {
-            router.route((HttpMethod) objectEntry.getKey()[1], objectEntry.getKey()[0].toString()).handler(requestHandler((Method) objectEntry.getValue()));
-            /*System.out.println(objectEntry.getValue());*/
-        }
+            *//*objectEntry.getKey()[2].getClass() clazz = injector.getInstance(objectEntry.getKey()[2]);*//*
+            *//*Class clazz = injector.getInstance(((Class) objectEntry.getKey()[2]).getClass());*//*
+            *//*router.route((HttpMethod) objectEntry.getKey()[1], objectEntry.getKey()[0].toString()).handler(requestHandler((Method) objectEntry.getValue(), clazz));*//*
+        }*/
         /*router.get("/query").handler(BookController :: queryBook);
         router.get("/add/:name/:author").handler(BookController :: addBook);*/
-        vertx.createHttpServer().requestHandler(router :: accept).listen(8090);
+        /*router.get("/query").handler(BookController:: say);
+        Guice.createInjector(new GuiceVerticle());*/
+        GuiceVerticle guiceVerticle = new GuiceVerticle();
+        GuiceModule guiceModule = new GuiceModule();
+        GuiceVerticleFactory guiceVerticleFactory = new GuiceVerticleFactory();
+        GuiceVerticleLoader guiceVerticleLoader = new GuiceVerticleLoader(guiceVerticle.getClass().getName(), ClassLoader.getSystemClassLoader(), Guice.createInjector(guiceModule));
+        Verticle verticle = guiceVerticleFactory.createVerticle(guiceVerticle.getClass().getName(), ClassLoader.getSystemClassLoader());
+        guiceVerticleLoader.init(verticle.getVertx(), verticle.getVertx().getOrCreateContext());
+        Vertx vertx = verticle.getVertx();
+        Router router = Router.router(vertx);
+        router.get("/query").handler(BookController:: say);
+        vertx.createHttpServer().requestHandler(router :: accept).listen(8090, res -> {
+            if(res.succeeded()){
+                System.out.println("启动完成！");
+            }else if(res.failed()){
+                System.out.println("启动错误！");
+            }
+        });
+        guiceVerticleLoader.start();
+        /*vertx.createHttpServer().listen(8090);*/
     }
 }

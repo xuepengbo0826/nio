@@ -1,8 +1,6 @@
 package com.learn.vertx.util;
 
 import com.learn.vertx.VertxApp;
-import com.learn.vertx.annotation.Action;
-import com.learn.vertx.annotation.Url;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -26,7 +24,7 @@ public class Load {
      * @description:
      *      启动时扫面全部的controller
      */
-    public static void loadClass(String packget){
+    /*public static void loadClass(String packget){
         String filePath = VertxApp.class.getResource("/").getPath() + packget.replace(".", "\\");
         File dir = new File(filePath);
         File[] files = dir.listFiles();
@@ -44,7 +42,7 @@ public class Load {
             }
         }
     }
-
+*/
     /**
      *
      * 功能描述:
@@ -57,7 +55,7 @@ public class Load {
      * @description:
      *      启动时扫面全部的controller的method
      */
-    private static void loadMethod(String typePath, Class clazz){
+    /*private static void loadMethod(String typePath, Class clazz){
         if(!typePath.startsWith("/")){
             typePath = "/" + typePath;
         }
@@ -73,8 +71,8 @@ public class Load {
                     methodPath = methodPath.substring(1);
                 }
                 String path = typePath + methodPath;
-                VertxApp.methodMap.put(new Object[]{path, url.method()}, method);
+                VertxApp.methodMap.put(new Object[]{path, url.method(), clazz}, method);
             }
         }
-    }
+    }*/
 }
